@@ -1,7 +1,7 @@
 import { searchTeams, lookupTeam, eventsNext, eventsLast } from "./api.js";
 import { getFavorites, isFavorite, toggleFavorite, updateFavorites } from "./favorites.js";
 import {
-  $, el, toggle, showAlert, clearAlert, renderTeams, renderEvents, sortByDate, fillEventModal,
+  $, toggle, showAlert, clearAlert, renderTeams, renderEvents, sortByDate, fillEventModal,
 } from "./ui.js";
 
 const DEBOUNCE_MS = 400;
@@ -55,21 +55,22 @@ function renderResults() {
   const list = visibleResults();
   toggle($("#results-title"), state.results.length > 0);
   renderTeams($("#results-list"), list, cardOptions);
+
+  // Se la ricerca ha trovato squadre ma il filtro le nasconde tutte, lo si spiega
+  // (altrimenti la lista sembrerebbe vuota senza motivo)
+  if (state.results.length > 0) {
+    const alertArea = $("#alert-area");
+    if (list.length === 0) {
+      showAlert(alertArea, 'Nessuna squadra trovata per lo sport selezionato. Prova con "Tutti gli sport".', "info");
+    } else {
+      clearAlert(alertArea);
+    }
+  }
 }
 
 function renderAll() {
   renderFavorites();
   renderResults();
-}
-
-function updateSportFilter() {
-  const previous = sportFilter.value;
-  const sports = [...new Set(state.results.map((t) => t.strSport).filter(Boolean))].sort();
-  sportFilter.replaceChildren(
-    el("option", { text: "Tutti gli sport", attrs: { value: "" } }),
-    ...sports.map((s) => el("option", { text: s, attrs: { value: s } })));
-  sportFilter.value = sports.includes(previous) ? previous : "";
-  sportFilter.disabled = sports.length < 2;
 }
 
 // ---------- Ricerca ----------
@@ -84,7 +85,6 @@ async function runSearch() {
 
   if (query.length < MIN_CHARS) {
     state.results = [];
-    updateSportFilter();
     renderResults();
     toggle($("#spinner"), false);
     return;
@@ -96,7 +96,6 @@ async function runSearch() {
 
   try {
     state.results = await searchTeams(query, controller.signal);
-    updateSportFilter();
     renderResults();
     if (!state.results.length) showAlert(alertArea, `Nessuna squadra trovata per "${query}".`, "info");
   } catch (err) {

@@ -1,7 +1,7 @@
 // Gestione dei preferiti in localStorage (collezione di oggetti squadra)
 const KEY = "favoriteTeams";
 
-// Solo i campi usati dall'app, con i nomi esatti dell'API
+// Funzione decostruttrice 
 function pick(t) {
   const { idTeam, strTeam, strBadge, strLeague, strCountry, strSport } = t;
   return { idTeam, strTeam, strBadge, strLeague, strCountry, strSport };
@@ -27,7 +27,7 @@ export function isFavorite(id) {
   return getFavorites().some((t) => t.idTeam === id);
 }
 
-// Aggiunge o rimuove; ritorna true se ora è nei preferiti
+// Aggiunge o rimuove; ritorna true all'aggiunta
 export function toggleFavorite(team) {
   const list = getFavorites();
   const exists = list.some((t) => t.idTeam === team.idTeam);
